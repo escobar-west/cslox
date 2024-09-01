@@ -14,7 +14,7 @@ def define_ast(out_dir: Path, base_name: str, types: list[str]) -> None:
         define_visitor(f, base_name, types, 1)
         f.write("\n")
         # Abstract accept method
-        f.write(f"{TAB}protected abstract T accept<T>(Visitor<T> visitor);\n")
+        f.write(f"{TAB}public abstract T accept<T>(Visitor<T> visitor);\n")
         for type in types:
             f.write("\n")
             type_args = type.split(":")
@@ -28,7 +28,7 @@ def define_ast(out_dir: Path, base_name: str, types: list[str]) -> None:
 
 def define_visitor(f: TextIO, base: str, types: list[str], tab_level: int) -> None:
     # Interface definition
-    f.write(f"{TAB * tab_level}protected interface Visitor<T> {{\n")
+    f.write(f"{TAB * tab_level}public interface Visitor<T> {{\n")
     for type in types:
         type_name = type.split(":")[0].strip()
         # Required methods
@@ -45,7 +45,7 @@ def define_type(f: TextIO, base: str, type: str, fields: str, tab_level: int) ->
     field_list = [x.strip() for x in fields.split(",")]
     # Field names
     for field in field_list:
-        f.write(f"{TAB * (tab_level + 1)}readonly {field.replace(" ", " _")};\n")
+        f.write(f"{TAB * (tab_level + 1)}public readonly {field.replace(" ", " _")};\n")
     f.write("\n")
     # Constructor
     f.write(f"{TAB * (tab_level + 1)}public {type}({fields}) {{\n")
@@ -56,7 +56,7 @@ def define_type(f: TextIO, base: str, type: str, fields: str, tab_level: int) ->
     f.write("\n")
     # Overwrite accept method
     f.write(
-        f"{TAB * (tab_level + 1)}protected override T accept<T>(Visitor<T> visitor) {{\n"
+        f"{TAB * (tab_level + 1)}public override T accept<T>(Visitor<T> visitor) {{\n"
     )
     f.write(f"{TAB * (tab_level + 2)}return visitor.visit{type}{base}(this);\n")
     f.write(f"{TAB * (tab_level + 1)}}}\n")
@@ -70,7 +70,7 @@ if __name__ == "__main__":
     types = [
         "Binary   : Expr left, Token op, Expr right",
         "Grouping : Expr expression",
-        "Literal  : Object value",
+        "Literal  : Object? value",
         "Unary    : Token op, Expr right",
     ]
     define_ast(out_dir, base_name, types)

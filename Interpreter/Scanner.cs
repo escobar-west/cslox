@@ -66,7 +66,7 @@ public class Scanner {
             case '=': addToken(match('=') ? TokenType.EQUAL_EQUAL : TokenType.EQUAL); break;
             case '<': addToken(match('=') ? TokenType.LESS_EQUAL : TokenType.LESS); break;
             case '>': addToken(match('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER); break;
-            case '/': 
+            case '/':
                 if (match('/')) {
                     while (peek() != '\n' && !isAtEnd()) advance();
                 } else {
@@ -109,7 +109,7 @@ public class Scanner {
         while (isDigit(peek())) advance();
         if (peek() == '.' && isDigit(peekNext())) {
             advance();
-            while(isDigit(peek())) advance();
+            while (isDigit(peek())) advance();
         }
         var value = float.Parse(_source.Substring(_start, _current - _start));
         addToken(TokenType.NUMBER, value);
@@ -143,7 +143,7 @@ public class Scanner {
 
     char peekNext() {
         if (_current + 1 >= _source.Count()) return '\0';
-        return _source[_current + 1]; 
+        return _source[_current + 1];
     }
 
     char advance() {
@@ -162,10 +162,10 @@ public class Scanner {
 
 
 public class Token {
-    readonly TokenType _type;
-    readonly string _lexeme;
-    readonly Object? _literal;
-    readonly int _line;
+    public readonly TokenType _type;
+    public readonly string _lexeme;
+    public readonly Object? _literal;
+    public readonly int _line;
 
     public Token(TokenType type, string lexeme, Object? literal, int line) {
         _type = type;

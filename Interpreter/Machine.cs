@@ -24,18 +24,35 @@ public class Machine {
     static void run(string source) {
         var scanner = new Scanner(source);
         List<Token> tokens = scanner.scanTokens();
-
         foreach (Token token in tokens) {
-            Console.WriteLine(token.toString());
+            //Console.WriteLine(token.toString());
         }
+        var parser = new Parser(tokens);
+        Expr? expression = parser.parse();
+        if (Machine._hadError) return;
+        Console.WriteLine(new AstPrinter().print(expression!)!);
     }
 
     public static void error(int line, string message) {
-        report(line, "", message);
+        report(line, null, message);
     }
 
-    static void report(int line, string where, string message) {
-        Console.Error.Write($"[line {line}] Error{where}: {message}");
+    public static void error(Token token, String message) {
+        if (token._type == TokenType.EOF) {
+            report(token._line, "at end", message);
+        } else {
+            report(token._line, $"at '{token._lexeme}'", message);
+        }
+    }
+
+    static void report(int line, string? where, string message) {
+        string fmted_where;
+        if (where != null) {
+            fmted_where = $"_{where}";
+        } else {
+            fmted_where = "";
+        }
+        Console.Error.Write($"[line {line}] Error{fmted_where}: {message}\n");
         Machine._hadError = true;
     }
 }
