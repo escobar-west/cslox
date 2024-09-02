@@ -1,7 +1,7 @@
 namespace Lib;
 
 public class Scanner {
-    static readonly Dictionary<string, TokenType> keywords =
+    static readonly Dictionary<string, TokenType> _keywords =
     new() {
         {"and", TokenType.AND},
         {"class", TokenType.CLASS},
@@ -21,7 +21,7 @@ public class Scanner {
         {"while", TokenType.WHILE},
     };
     readonly string _source;
-    readonly List<Token> _tokens = new List<Token>();
+    readonly List<Token> _tokens = [];
     int _start = 0;
     int _current = 0;
     int _line = 1;
@@ -80,25 +80,24 @@ public class Scanner {
         }
     }
 
-    bool IsAlpha(char c) {
+    static bool IsAlpha(char c) {
         return (c >= 'a' && c <= 'z') ||
                (c >= 'A' && c <= 'Z') ||
                c == '_';
     }
 
-    bool IsDigit(char c) {
+    static bool IsDigit(char c) {
         return '0' <= c && c <= '9';
     }
 
-    bool IsAlphaDigit(char c) {
+    static bool IsAlphaDigit(char c) {
         return IsAlpha(c) || IsDigit(c);
     }
 
     void AddIdentifier() {
         while (IsAlphaDigit(Peek())) Advance();
         var text = _source.Substring(_start, _current - _start);
-        TokenType value;
-        if (Scanner.keywords.TryGetValue(text, out value)) {
+        if (_keywords.TryGetValue(text, out TokenType value)) {
             AddToken(value);
         } else {
             AddToken(TokenType.IDENTIFIER);
@@ -111,7 +110,7 @@ public class Scanner {
             Advance();
             while (IsDigit(Peek())) Advance();
         }
-        var value = float.Parse(_source.Substring(_start, _current - _start));
+        var value = double.Parse(_source.Substring(_start, _current - _start));
         AddToken(TokenType.NUMBER, value);
     }
 

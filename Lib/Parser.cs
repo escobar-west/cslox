@@ -143,7 +143,7 @@ public class Parser {
         }
     }
 
-    ParseException Error(Token token, string message) {
+    static ParseException Error(Token token, string message) {
         Machine.Error(token, message);
         return new ParseException();
     }
