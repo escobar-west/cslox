@@ -1,4 +1,4 @@
-﻿using Interpreter;
+﻿using Lib;
 
 class Program {
     static void Main(string[] args) {
@@ -6,9 +6,9 @@ class Program {
             Console.WriteLine("Usage: jlox [script]");
             Environment.Exit(1);
         } else if (args.Length == 1) {
-            Machine.runFile(args[0]);
+            Machine.RunFile(args[0]);
         } else {
-            Machine.runPrompt();
+            Machine.RunPrompt();
         }
     }
 }

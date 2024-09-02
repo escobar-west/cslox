@@ -1,8 +1,8 @@
-namespace Interpreter;
+namespace Lib;
 
 public class Scanner {
     static readonly Dictionary<string, TokenType> keywords =
-    new Dictionary<string, TokenType> {
+    new() {
         {"and", TokenType.AND},
         {"class", TokenType.CLASS},
         {"else", TokenType.ELSE},
@@ -30,21 +30,21 @@ public class Scanner {
         _source = source;
     }
 
-    public List<Token> scanTokens() {
-        while (!isAtEnd()) {
+    public List<Token> ScanTokens() {
+        while (!IsAtEnd()) {
             _start = _current;
-            scanToken();
+            ScanToken();
         }
         _tokens.Add(new Token(TokenType.EOF, "", null, _line));
         return _tokens;
     }
 
-    bool isAtEnd() {
+    bool IsAtEnd() {
         return _current >= _source.Count();
     }
 
-    void scanToken() {
-        char c = advance();
+    void ScanToken() {
+        char c = Advance();
         switch (c) {
             case ' ':
             case '\r':
@@ -52,109 +52,109 @@ public class Scanner {
             case '\n':
                 _line++;
                 break;
-            case '(': addToken(TokenType.LEFT_PAREN); break;
-            case ')': addToken(TokenType.RIGHT_PAREN); break;
-            case '{': addToken(TokenType.LEFT_BRACE); break;
-            case '}': addToken(TokenType.RIGHT_BRACE); break;
-            case ',': addToken(TokenType.COMMA); break;
-            case '.': addToken(TokenType.DOT); break;
-            case '-': addToken(TokenType.MINUS); break;
-            case '+': addToken(TokenType.PLUS); break;
-            case ';': addToken(TokenType.SEMICOLON); break;
-            case '*': addToken(TokenType.STAR); break;
-            case '!': addToken(match('=') ? TokenType.BANG_EQUAL : TokenType.BANG); break;
-            case '=': addToken(match('=') ? TokenType.EQUAL_EQUAL : TokenType.EQUAL); break;
-            case '<': addToken(match('=') ? TokenType.LESS_EQUAL : TokenType.LESS); break;
-            case '>': addToken(match('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER); break;
+            case '(': AddToken(TokenType.LEFT_PAREN); break;
+            case ')': AddToken(TokenType.RIGHT_PAREN); break;
+            case '{': AddToken(TokenType.LEFT_BRACE); break;
+            case '}': AddToken(TokenType.RIGHT_BRACE); break;
+            case ',': AddToken(TokenType.COMMA); break;
+            case '.': AddToken(TokenType.DOT); break;
+            case '-': AddToken(TokenType.MINUS); break;
+            case '+': AddToken(TokenType.PLUS); break;
+            case ';': AddToken(TokenType.SEMICOLON); break;
+            case '*': AddToken(TokenType.STAR); break;
+            case '!': AddToken(Match('=') ? TokenType.BANG_EQUAL : TokenType.BANG); break;
+            case '=': AddToken(Match('=') ? TokenType.EQUAL_EQUAL : TokenType.EQUAL); break;
+            case '<': AddToken(Match('=') ? TokenType.LESS_EQUAL : TokenType.LESS); break;
+            case '>': AddToken(Match('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER); break;
             case '/':
-                if (match('/')) {
-                    while (peek() != '\n' && !isAtEnd()) advance();
+                if (Match('/')) {
+                    while (Peek() != '\n' && !IsAtEnd()) Advance();
                 } else {
-                    addToken(TokenType.SLASH);
+                    AddToken(TokenType.SLASH);
                 }
                 break;
-            case '"': add_string(); break;
-            case char o when isDigit(o): add_number(); break;
-            case char o when isAlpha(o): add_identifier(); break;
-            default: Machine.error(_line, $"Unexpected character: {c}\n"); break;
+            case '"': AddString(); break;
+            case char o when IsDigit(o): AddNumber(); break;
+            case char o when IsAlpha(o): AddIdentifier(); break;
+            default: Machine.Error(_line, $"Unexpected character: {c}\n"); break;
         }
     }
 
-    bool isAlpha(char c) {
+    bool IsAlpha(char c) {
         return (c >= 'a' && c <= 'z') ||
                (c >= 'A' && c <= 'Z') ||
                c == '_';
     }
 
-    bool isDigit(char c) {
+    bool IsDigit(char c) {
         return '0' <= c && c <= '9';
     }
 
-    bool isAlphaDigit(char c) {
-        return isAlpha(c) || isDigit(c);
+    bool IsAlphaDigit(char c) {
+        return IsAlpha(c) || IsDigit(c);
     }
 
-    void add_identifier() {
-        while (isAlphaDigit(peek())) advance();
+    void AddIdentifier() {
+        while (IsAlphaDigit(Peek())) Advance();
         var text = _source.Substring(_start, _current - _start);
         TokenType value;
         if (Scanner.keywords.TryGetValue(text, out value)) {
-            addToken(value);
+            AddToken(value);
         } else {
-            addToken(TokenType.IDENTIFIER);
+            AddToken(TokenType.IDENTIFIER);
         }
     }
 
-    void add_number() {
-        while (isDigit(peek())) advance();
-        if (peek() == '.' && isDigit(peekNext())) {
-            advance();
-            while (isDigit(peek())) advance();
+    void AddNumber() {
+        while (IsDigit(Peek())) Advance();
+        if (Peek() == '.' && IsDigit(PeekNext())) {
+            Advance();
+            while (IsDigit(Peek())) Advance();
         }
         var value = float.Parse(_source.Substring(_start, _current - _start));
-        addToken(TokenType.NUMBER, value);
+        AddToken(TokenType.NUMBER, value);
     }
 
-    void add_string() {
-        while (peek() != '"' && !isAtEnd()) {
-            if (peek() == '\n') _line++;
-            advance();
+    void AddString() {
+        while (Peek() != '"' && !IsAtEnd()) {
+            if (Peek() == '\n') _line++;
+            Advance();
         }
-        if (isAtEnd()) {
-            Machine.error(_line, "Unterminated string\n");
+        if (IsAtEnd()) {
+            Machine.Error(_line, "Unterminated string\n");
             return;
         }
-        advance();
+        Advance();
         var value = _source.Substring(_start + 1, _current - _start - 2);
-        addToken(TokenType.STRING, value);
+        AddToken(TokenType.STRING, value);
     }
 
-    bool match(char expected) {
-        bool is_not_match = isAtEnd() || (_source[_current] != expected);
+    bool Match(char expected) {
+        bool is_not_match = IsAtEnd() || (_source[_current] != expected);
         if (is_not_match) return false;
         _current++;
         return true;
     }
 
-    char peek() {
-        if (isAtEnd()) return '\0';
+    char Peek() {
+        if (IsAtEnd()) return '\0';
         return _source[_current];
     }
 
-    char peekNext() {
+    char PeekNext() {
         if (_current + 1 >= _source.Count()) return '\0';
         return _source[_current + 1];
     }
 
-    char advance() {
+    char Advance() {
         return _source[_current++];
     }
 
-    void addToken(TokenType type) {
-        addToken(type, null);
+    void AddToken(TokenType type) {
+        AddToken(type, null);
     }
 
-    void addToken(TokenType type, Object? literal) {
+    void AddToken(TokenType type, object? literal) {
         var text = _source.Substring(_start, _current - _start);
         _tokens.Add(new Token(type, text, literal, _line));
     }
@@ -164,17 +164,17 @@ public class Scanner {
 public class Token {
     public readonly TokenType _type;
     public readonly string _lexeme;
-    public readonly Object? _literal;
+    public readonly object? _literal;
     public readonly int _line;
 
-    public Token(TokenType type, string lexeme, Object? literal, int line) {
+    public Token(TokenType type, string lexeme, object? literal, int line) {
         _type = type;
         _lexeme = lexeme;
         _literal = literal;
         _line = line;
     }
 
-    public string toString() {
+    public override string ToString() {
         return $"{_type} {_lexeme} {_literal}";
     }
 }
