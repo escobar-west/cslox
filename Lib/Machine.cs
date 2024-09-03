@@ -26,10 +26,9 @@ public class Machine {
         var scanner = new Scanner(source);
         List<Token> tokens = scanner.ScanTokens();
         var parser = new Parser(tokens);
-        Expr expression = parser.Parse();
+        List<Stmt> statements = parser.Parse();
         if (_hadError) return;
-        //Console.WriteLine(new AstPrinter().Print(expression));
-        Console.WriteLine(new Interpreter().Interpret(expression));
+        _interpreter.Interpret(statements);
     }
 
     public static void Error(int line, string message) {
