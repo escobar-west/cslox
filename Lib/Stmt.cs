@@ -6,7 +6,6 @@ public abstract class Stmt {
         void VisitExpressionStmt(Expression stmt);
         void VisitFunctionStmt(Function stmt);
         void VisitIfStmt(If stmt);
-        void VisitPrintStmt(Print stmt);
         void VisitReturnStmt(Return stmt);
         void VisitVarStmt(Var stmt);
         void VisitWhileStmt(While stmt);
@@ -67,18 +66,6 @@ public abstract class Stmt {
 
         public override void Accept(IVisitor visitor) {
             visitor.VisitIfStmt(this);
-        }
-    }
-
-    public class Print : Stmt {
-        public readonly Expr _expression;
-
-        public Print(Expr expression) {
-            _expression = expression;
-        }
-
-        public override void Accept(IVisitor visitor) {
-            visitor.VisitPrintStmt(this);
         }
     }
 

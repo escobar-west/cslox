@@ -12,7 +12,6 @@ public class Scanner {
         {"if", TokenType.IF},
         {"nil", TokenType.NIL},
         {"or", TokenType.OR},
-        {"print", TokenType.PRINT},
         {"return", TokenType.RETURN},
         {"super", TokenType.SUPER},
         {"this", TokenType.THIS},
@@ -197,6 +196,6 @@ public enum TokenType {
     IDENTIFIER, STRING, NUMBER,
     // Keywords.
     AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR,
-    PRINT, RETURN, SUPER, THIS, TRUE, VAR, WHILE,
+    RETURN, SUPER, THIS, TRUE, VAR, WHILE,
     EOF
 }

@@ -52,10 +52,6 @@ public class Resolver : Expr.IVisitor<object?>, Stmt.IVisitor {
         Resolve(stmt._elseBranch);
     }
 
-    public void VisitPrintStmt(Stmt.Print stmt) {
-        Resolve(stmt._expression);
-    }
-
     public void VisitReturnStmt(Stmt.Return stmt) {
         if (_currentFunc == FunctionType.NONE)
             Machine.Error(stmt._keyword, "Can't return from top-level code.");

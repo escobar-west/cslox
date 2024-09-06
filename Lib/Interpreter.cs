@@ -58,11 +58,6 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor {
         _environment.Define(stmt._name._lexeme, func);
     }
 
-    public void VisitPrintStmt(Stmt.Print stmt) {
-        var value = stmt._expression.Accept(this) ?? "nil";
-        Console.WriteLine(value);
-    }
-
     public void VisitVarStmt(Stmt.Var stmt) {
         object? value = stmt._initializer?.Accept(this);
         _environment.Define(stmt._name._lexeme, value);

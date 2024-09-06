@@ -55,7 +55,6 @@ public class Parser {
     Stmt Statement() {
         if (Match(TokenType.FOR)) return ForStatement();
         if (Match(TokenType.IF)) return IfStatement();
-        if (Match(TokenType.PRINT)) return PrintStatement();
         if (Match(TokenType.RETURN)) return ReturnStatement();
         if (Match(TokenType.WHILE)) return WhileStatement();
         if (Match(TokenType.LEFT_BRACE)) return new Stmt.Block(Block());
@@ -101,12 +100,6 @@ public class Parser {
         Stmt thenBranch = Statement();
         Stmt? elseBranch = Match(TokenType.ELSE) ? Statement() : null;
         return new Stmt.If(condition, thenBranch, elseBranch);
-    }
-
-    Stmt.Print PrintStatement() {
-        Expr value = Expression();
-        Consume(TokenType.SEMICOLON, "Expect ';' after value.");
-        return new Stmt.Print(value);
     }
 
     private Stmt.Return ReturnStatement() {
@@ -326,7 +319,6 @@ public class Parser {
                 case TokenType.FOR:
                 case TokenType.IF:
                 case TokenType.WHILE:
-                case TokenType.PRINT:
                 case TokenType.RETURN:
                     return;
             }

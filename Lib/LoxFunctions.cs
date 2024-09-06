@@ -35,7 +35,7 @@ public class ClockFunc : BaseLoxFunc {
 
 
 public class PrintFunc : BaseLoxFunc {
-    public PrintFunc() : base("fprint") { }
+    public PrintFunc() : base("print") { }
 
     public override int Arity() {
         return 1;
