@@ -1,31 +1,61 @@
 namespace Lib;
 
 public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor {
-    Env _env = new();
+    readonly Dictionary<Expr, int> _locals = [];
+    readonly Env _globals;
+    Env _environment;
+
+    public Interpreter() {
+        _globals = new();
+        ClockFunc clock_func = new();
+        PrintFunc print_func = new();
+        ToStringFunc str_func = new();
+        _globals.Define(clock_func._name, clock_func);
+        _globals.Define(print_func._name, print_func);
+        _globals.Define(str_func._name, str_func);
+        _environment = _globals;
+    }
+
     public void Interpret(List<Stmt> statements) {
         try {
-            foreach (var stmt in statements) stmt.Accept(this);
+            foreach (var stmt in statements)
+                stmt.Accept(this);
         } catch (Exception e) {
             Machine.RuntimeError(e);
         }
     }
 
-    public void VisitBlockStmt(Stmt.Block stmt) {
-        ExecuteBlock(stmt._statements, new Env(_env));
+    public void Resolve(Expr expr, int depth) {
+        _locals[expr] = depth;
     }
 
-    void ExecuteBlock(List<Stmt> statements, Env block_env) {
-        Env cached_env = _env;
-        _env = block_env;
+    public void VisitBlockStmt(Stmt.Block stmt) {
+        ExecuteBlock(stmt._statements, new Env(_environment));
+    }
+
+    public void ExecuteBlock(List<Stmt> statements, Env block_env) {
+        Env cached_env = _environment;
+        _environment = block_env;
         try {
-            foreach (var stmt in statements) stmt.Accept(this);
+            foreach (var stmt in statements)
+                stmt.Accept(this);
         } finally {
-            _env = cached_env;
+            _environment = cached_env;
         }
+    }
+
+    public void VisitReturnStmt(Stmt.Return stmt) {
+        object? value = stmt._value?.Accept(this);
+        throw new Return(value);
     }
 
     public void VisitExpressionStmt(Stmt.Expression stmt) {
         stmt._expression.Accept(this);
+    }
+
+    public void VisitFunctionStmt(Stmt.Function stmt) {
+        LoxFunc func = new(stmt, _environment);
+        _environment.Define(stmt._name._lexeme, func);
     }
 
     public void VisitPrintStmt(Stmt.Print stmt) {
@@ -35,18 +65,32 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor {
 
     public void VisitVarStmt(Stmt.Var stmt) {
         object? value = stmt._initializer?.Accept(this);
-        _env.Define(stmt._name, value);
+        _environment.Define(stmt._name._lexeme, value);
     }
 
     public void VisitIfStmt(Stmt.If stmt) {
         object? condition = stmt._condition.Accept(this);
-        if (ToBool(condition)) stmt._thenBranch.Accept(this);
-        else stmt._elseBranch?.Accept(this);
+        if (ToBool(condition))
+            stmt._thenBranch.Accept(this);
+        else
+            stmt._elseBranch?.Accept(this);
     }
 
     public void VisitWhileStmt(Stmt.While stmt) {
         while (ToBool(stmt._condition.Accept(this)))
             stmt._body.Accept(this);
+    }
+
+    public object? VisitCallExpr(Expr.Call expr) {
+        object? callee = expr._callee.Accept(this);
+        List<object?> args = [];
+        foreach (var arg in expr._args)
+            args.Add(arg.Accept(this));
+        ILoxCallable func = callee as ILoxCallable ??
+             throw new InvalidOperationException("Can only call functions and classes.");
+        if (args.Count != func.Arity())
+            throw new InvalidOperationException("Wrong arity");
+        return func.Call(this, args);
     }
 
     public object? VisitLogicalExpr(Expr.Logical expr) {
@@ -60,12 +104,22 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor {
 
     public object? VisitAssignExpr(Expr.Assign expr) {
         object? value = expr._value.Accept(this);
-        _env.Assign(expr._name, value);
+        if (_locals.TryGetValue(expr, out int distance))
+            _environment.AssignAt(expr._name._lexeme, value, distance);
+        else
+            _globals.Assign(expr._name._lexeme, value);
         return value;
     }
 
     public object? VisitVariableExpr(Expr.Variable expr) {
-        return _env.Get(expr._name);
+        return LookUpVariable(expr._name, expr);
+    }
+
+    object? LookUpVariable(Token name, Expr expr) {
+        if (_locals.TryGetValue(expr, out int distance)) {
+            return _environment.GetAt(name._lexeme, distance);
+        }
+        return _globals.Get(name._lexeme);
     }
 
     public object? VisitLiteralExpr(Expr.Literal expr) {

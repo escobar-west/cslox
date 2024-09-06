@@ -108,7 +108,8 @@ public class Scanner {
         while (IsDigit(Peek())) Advance();
         if (Peek() == '.' && IsDigit(PeekNext())) {
             Advance();
-            while (IsDigit(Peek())) Advance();
+            while (IsDigit(Peek()))
+                Advance();
         }
         var value = double.Parse(_source.Substring(_start, _current - _start));
         AddToken(TokenType.NUMBER, value);
@@ -116,7 +117,8 @@ public class Scanner {
 
     void AddString() {
         while (Peek() != '"' && !IsAtEnd()) {
-            if (Peek() == '\n') _line++;
+            if (Peek() == '\n')
+                _line++;
             Advance();
         }
         if (IsAtEnd()) {
@@ -130,18 +132,21 @@ public class Scanner {
 
     bool Match(char expected) {
         bool is_not_match = IsAtEnd() || (_source[_current] != expected);
-        if (is_not_match) return false;
+        if (is_not_match)
+            return false;
         _current++;
         return true;
     }
 
     char Peek() {
-        if (IsAtEnd()) return '\0';
+        if (IsAtEnd())
+            return '\0';
         return _source[_current];
     }
 
     char PeekNext() {
-        if (_current + 1 >= _source.Count()) return '\0';
+        if (_current + 1 >= _source.Count())
+            return '\0';
         return _source[_current + 1];
     }
 

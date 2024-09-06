@@ -16,7 +16,8 @@ public class Machine {
         while (true) {
             Console.Write("> ");
             string? line = Console.ReadLine();
-            if (line == null) break;
+            if (line == null)
+                break;
             Run(line);
             _hadError = false;
         }
@@ -27,7 +28,12 @@ public class Machine {
         List<Token> tokens = scanner.ScanTokens();
         var parser = new Parser(tokens);
         List<Stmt> statements = parser.Parse();
-        if (_hadError) return;
+        if (_hadError)
+            return;
+        Resolver resolver = new(_interpreter);
+        resolver.Resolve(statements);
+        if (_hadError)
+            return;
         _interpreter.Interpret(statements);
     }
 
@@ -49,7 +55,8 @@ public class Machine {
 
     static void Report(int? line, string? where, string message) {
         var line_str = (line != null) ? $"[line {line}] " : "";
-        if (where != null) where = $" {where}";
+        if (where != null)
+            where = $" {where}";
         Console.Error.WriteLine($"{line_str}Error{where}: {message}\n");
         _hadError = true;
     }
