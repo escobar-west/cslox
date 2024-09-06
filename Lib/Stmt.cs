@@ -3,6 +3,7 @@ namespace Lib;
 public abstract class Stmt {
     public interface IVisitor {
         void VisitBlockStmt(Block stmt);
+        void VisitClassStmt(Class stmt);
         void VisitExpressionStmt(Expression stmt);
         void VisitFunctionStmt(Function stmt);
         void VisitIfStmt(If stmt);
@@ -22,6 +23,20 @@ public abstract class Stmt {
 
         public override void Accept(IVisitor visitor) {
             visitor.VisitBlockStmt(this);
+        }
+    }
+
+    public class Class : Stmt {
+        public readonly Token _name;
+        public readonly List<Stmt.Function> _methods;
+
+        public Class(Token name, List<Stmt.Function> methods) {
+            _name = name;
+            _methods = methods;
+        }
+
+        public override void Accept(IVisitor visitor) {
+            visitor.VisitClassStmt(this);
         }
     }
 

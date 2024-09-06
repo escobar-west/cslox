@@ -15,6 +15,11 @@ public class Resolver : Expr.IVisitor<object?>, Stmt.IVisitor {
         EndScope();
     }
 
+    public void VisitClassStmt(Stmt.Class stmt) {
+        Declare(stmt._name);
+        Define(stmt._name);
+    }
+
     public void VisitVarStmt(Stmt.Var stmt) {
         Declare(stmt._name);
         Resolve(stmt._initializer);

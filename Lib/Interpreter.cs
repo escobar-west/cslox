@@ -33,6 +33,12 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor {
         ExecuteBlock(stmt._statements, new Env(_environment));
     }
 
+    public void VisitClassStmt(Stmt.Class stmt) {
+        _environment.Define(stmt._name._lexeme, null);
+        LoxClass klass = new LoxClass(stmt._name._lexeme);
+        _environment.Assign(stmt._name._lexeme, klass);
+    }
+
     public void ExecuteBlock(List<Stmt> statements, Env block_env) {
         Env cached_env = _environment;
         _environment = block_env;
