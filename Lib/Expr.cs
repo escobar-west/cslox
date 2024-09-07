@@ -6,9 +6,12 @@ public abstract class Expr {
         T VisitBinaryExpr(Binary expr);
         T VisitCallExpr(Call expr);
         T VisitEmptyExpr(Empty expr);
+        T VisitGetExpr(Get expr);
         T VisitGroupingExpr(Grouping expr);
         T VisitLiteralExpr(Literal expr);
         T VisitLogicalExpr(Logical expr);
+        T VisitSetExpr(Set expr);
+        T VisitThisExpr(This expr);
         T VisitUnaryExpr(Unary expr);
         T VisitVariableExpr(Variable expr);
     }
@@ -71,6 +74,20 @@ public abstract class Expr {
         }
     }
 
+    public class Get : Expr {
+        public readonly Expr _instance;
+        public readonly Token _name;
+
+        public Get(Expr instance, Token name) {
+            _instance = instance;
+            _name = name;
+        }
+
+        public override T Accept<T>(IVisitor<T> visitor) {
+            return visitor.VisitGetExpr(this);
+        }
+    }
+
     public class Grouping : Expr {
         public readonly Expr _expression;
 
@@ -108,6 +125,34 @@ public abstract class Expr {
 
         public override T Accept<T>(IVisitor<T> visitor) {
             return visitor.VisitLogicalExpr(this);
+        }
+    }
+
+    public class Set : Expr {
+        public readonly Expr _instance;
+        public readonly Token _name;
+        public readonly Expr _value;
+
+        public Set(Expr instance, Token name, Expr value) {
+            _instance = instance;
+            _name = name;
+            _value = value;
+        }
+
+        public override T Accept<T>(IVisitor<T> visitor) {
+            return visitor.VisitSetExpr(this);
+        }
+    }
+
+    public class This : Expr {
+        public readonly Token _keyword;
+
+        public This(Token keyword) {
+            _keyword = keyword;
+        }
+
+        public override T Accept<T>(IVisitor<T> visitor) {
+            return visitor.VisitThisExpr(this);
         }
     }
 

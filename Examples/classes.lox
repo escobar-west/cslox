@@ -1,0 +1,30 @@
+var PI = 3.141592653;
+
+fun getPi() {
+    return PI;
+}
+
+class Circle {
+    init(radius) {
+        this.radius = radius;
+    }
+
+    area() {
+        return PI * this.radius * this.radius;
+    }
+
+    cylinder(height) {
+        return this.area() * height;
+    }
+}
+
+var radius = 100;
+var height = 2;
+
+var circle = Circle(radius);
+print(circle);
+print("Old Radius: " + str(circle.radius));
+circle.radius = 1;
+print("New Radius: " + str(circle.radius));
+print("Area: " + str(circle.area()));
+print("Volume: " + str(circle.cylinder(2)));

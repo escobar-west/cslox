@@ -4,6 +4,7 @@ public class Resolver : Expr.IVisitor<object?>, Stmt.IVisitor {
     readonly Interpreter _interpreter;
     readonly Stack<Dictionary<string, bool>> _scopes = new();
     FunctionType _currentFunc = FunctionType.NONE;
+    ClassType _currentClass = ClassType.NONE;
 
     public Resolver(Interpreter interpreter) {
         _interpreter = interpreter;
@@ -16,14 +17,46 @@ public class Resolver : Expr.IVisitor<object?>, Stmt.IVisitor {
     }
 
     public void VisitClassStmt(Stmt.Class stmt) {
+        ClassType enclosingClass = _currentClass;
+        _currentClass = ClassType.CLASS;
         Declare(stmt._name);
         Define(stmt._name);
+        BeginScope();
+        _scopes.Peek()["this"] = true;
+        foreach (var method in stmt._methods) {
+            var declaration = method._name._lexeme == "init" ?
+                FunctionType.INIT :
+                FunctionType.METHOD;
+            ResolveFunction(method, declaration);
+        }
+        EndScope();
+        _currentClass = enclosingClass;
     }
 
     public void VisitVarStmt(Stmt.Var stmt) {
         Declare(stmt._name);
         Resolve(stmt._initializer);
         Define(stmt._name);
+    }
+
+    public object? VisitThisExpr(Expr.This expr) {
+        if (_currentClass == ClassType.NONE) {
+            Machine.Error(expr._keyword, "Can't read local variable in its own initializer.");
+            return null;
+        }
+        ResolveLocal(expr, expr._keyword);
+        return null;
+    }
+
+    public object? VisitSetExpr(Expr.Set expr) {
+        Resolve(expr._value);
+        Resolve(expr._instance);
+        return null;
+    }
+
+    public object? VisitGetExpr(Expr.Get expr) {
+        Resolve(expr._instance);
+        return null;
     }
 
     public object? VisitVariableExpr(Expr.Variable expr) {
@@ -60,7 +93,11 @@ public class Resolver : Expr.IVisitor<object?>, Stmt.IVisitor {
     public void VisitReturnStmt(Stmt.Return stmt) {
         if (_currentFunc == FunctionType.NONE)
             Machine.Error(stmt._keyword, "Can't return from top-level code.");
-        Resolve(stmt._value);
+        if (stmt._value != null) {
+            if (_currentFunc == FunctionType.INIT)
+                Machine.Error(stmt._keyword, "Can't return a value from an initializer.");
+            Resolve(stmt._value);
+        }
     }
 
     public void VisitWhileStmt(Stmt.While stmt) {
@@ -170,4 +207,11 @@ public class Resolver : Expr.IVisitor<object?>, Stmt.IVisitor {
 enum FunctionType {
     NONE,
     FUNCTION,
+    INIT,
+    METHOD,
+}
+
+enum ClassType {
+    NONE,
+    CLASS,
 }

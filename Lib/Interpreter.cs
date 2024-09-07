@@ -35,8 +35,31 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor {
 
     public void VisitClassStmt(Stmt.Class stmt) {
         _environment.Define(stmt._name._lexeme, null);
-        LoxClass klass = new LoxClass(stmt._name._lexeme);
+        Dictionary<string, LoxFunc> methods = [];
+        foreach (var method in stmt._methods) {
+            LoxFunc func = new(method, _environment, method._name._lexeme == "init");
+            methods[method._name._lexeme] = func;
+        }
+        LoxClass klass = new(stmt._name._lexeme, methods);
         _environment.Assign(stmt._name._lexeme, klass);
+    }
+
+    public object? VisitGetExpr(Expr.Get expr) {
+        LoxInstance instance = expr._instance.Accept(this) as LoxInstance
+            ?? throw new InvalidOperationException("Only instances have properties.");
+        return instance.Get(expr._name._lexeme);
+    }
+
+    public object? VisitSetExpr(Expr.Set expr) {
+        LoxInstance instance = expr._instance.Accept(this) as LoxInstance
+            ?? throw new InvalidOperationException("Only instances have fields.");
+        object? value = expr._value.Accept(this);
+        instance.Set(expr._name._lexeme, value);
+        return value;
+    }
+
+    public object? VisitThisExpr(Expr.This expr) {
+        return LookUpVariable(expr._keyword, expr);
     }
 
     public void ExecuteBlock(List<Stmt> statements, Env block_env) {
@@ -60,7 +83,7 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor {
     }
 
     public void VisitFunctionStmt(Stmt.Function stmt) {
-        LoxFunc func = new(stmt, _environment);
+        LoxFunc func = new(stmt, _environment, false);
         _environment.Define(stmt._name._lexeme, func);
     }
 

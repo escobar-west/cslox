@@ -147,9 +147,10 @@ public class Parser {
             Token equals = Previous();
             Expr value = Assignment();
             switch (expr) {
-                case Expr.Variable v:
-                    Token name = v._name;
-                    return new Expr.Assign(name, value);
+                case Expr.Variable e:
+                    return new Expr.Assign(e._name, value);
+                case Expr.Get e:
+                    return new Expr.Set(e._instance, e._name, value);
                 default:
                     Error(equals, "Invalied assignment target");
                     break;
@@ -234,7 +235,10 @@ public class Parser {
         while (true) {
             if (Match(TokenType.LEFT_PAREN))
                 expr = FinishCall(expr);
-            else
+            else if (Match(TokenType.DOT)) {
+                Token name = Consume(TokenType.IDENTIFIER, "Expect property name after '.'.");
+                expr = new Expr.Get(expr, name);
+            } else
                 break;
         }
         return expr;
@@ -256,6 +260,7 @@ public class Parser {
     }
 
     Expr Primary() {
+        if (Match(TokenType.THIS)) return new Expr.This(Previous());
         if (Match(TokenType.IDENTIFIER)) return new Expr.Variable(Previous());
         if (Match(TokenType.FALSE)) return new Expr.Literal(false);
         if (Match(TokenType.TRUE)) return new Expr.Literal(true);

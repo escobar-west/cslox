@@ -94,9 +94,12 @@ if __name__ == "__main__":
         "Binary   : Expr left, Token op, Expr right",
         "Call     : Expr callee, Token paren, List<Expr> args",
         "Empty    :",
+        "Get      : Expr instance, Token name",
         "Grouping : Expr expression",
         "Literal  : object? value",
         "Logical  : Expr left, Token op, Expr right",
+        "Set      : Expr instance, Token name, Expr value",
+        "This     : Token keyword",
         "Unary    : Token op, Expr right",
         "Variable : Token name",
     ]
