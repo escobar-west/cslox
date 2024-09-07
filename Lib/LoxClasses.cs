@@ -1,9 +1,8 @@
-using System.Reflection;
-
 namespace Lib;
 
 public class LoxClass : ILoxCallable {
     public readonly string _name;
+    public readonly LoxClass? _superclass;
     readonly Dictionary<string, LoxFunc> _methods;
 
     public object? Call(Interpreter interpreter, List<object?> args) {
@@ -18,8 +17,9 @@ public class LoxClass : ILoxCallable {
         return FindMethod("init")?.Arity() ?? 0;
     }
 
-    public LoxClass(string name, Dictionary<string, LoxFunc> methods) {
+    public LoxClass(string name, LoxClass? superclass, Dictionary<string, LoxFunc> methods) {
         _name = name;
+        _superclass = superclass;
         _methods = methods;
     }
 
@@ -27,7 +27,7 @@ public class LoxClass : ILoxCallable {
         if (_methods.TryGetValue(name, out LoxFunc? value)) {
             return value;
         }
-        return null;
+        return _superclass?.FindMethod(name);
     }
 
     public override string ToString() {

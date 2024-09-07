@@ -32,12 +32,17 @@ public class Parser {
 
     Stmt.Class ClassDeclaration() {
         Token name = Consume(TokenType.IDENTIFIER, "Expect class name.");
+        Expr.Variable? superclass = null;
+        if (Match(TokenType.LESS)) {
+            Consume(TokenType.IDENTIFIER, "Expect superclass name.");
+            superclass = new Expr.Variable(Previous());
+        }
         Consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
         List<Stmt.Function> methods = [];
         while (!Check(TokenType.RIGHT_BRACE) && !IsAtEnd())
             methods.Add(Function("method"));
         Consume(TokenType.RIGHT_BRACE, "Expect '}' before class body.");
-        return new Stmt.Class(name, methods);
+        return new Stmt.Class(name, superclass, methods);
     }
 
     Stmt.Function Function(string kind) {
@@ -260,11 +265,16 @@ public class Parser {
     }
 
     Expr Primary() {
-        if (Match(TokenType.THIS)) return new Expr.This(Previous());
-        if (Match(TokenType.IDENTIFIER)) return new Expr.Variable(Previous());
-        if (Match(TokenType.FALSE)) return new Expr.Literal(false);
-        if (Match(TokenType.TRUE)) return new Expr.Literal(true);
-        if (Match(TokenType.NIL)) return new Expr.Literal(null);
+        if (Match(TokenType.THIS))
+            return new Expr.This(Previous());
+        if (Match(TokenType.IDENTIFIER))
+            return new Expr.Variable(Previous());
+        if (Match(TokenType.FALSE))
+            return new Expr.Literal(false);
+        if (Match(TokenType.TRUE))
+            return new Expr.Literal(true);
+        if (Match(TokenType.NIL))
+            return new Expr.Literal(null);
         if (Match([TokenType.NUMBER, TokenType.STRING])) {
             return new Expr.Literal(Previous()._literal);
         }
@@ -272,6 +282,12 @@ public class Parser {
             Expr expr = Expression();
             Consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
             return new Expr.Grouping(expr);
+        }
+        if (Match(TokenType.SUPER)) {
+            Token keyword = Previous();
+            Consume(TokenType.DOT, "Expect '.' after 'super'.");
+            Token method = Consume(TokenType.IDENTIFIER, "Expect superclass method name.");
+            return new Expr.Super(keyword, method);
         }
         throw Error(Peek(), "Expect expression");
     }

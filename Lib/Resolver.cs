@@ -21,6 +21,14 @@ public class Resolver : Expr.IVisitor<object?>, Stmt.IVisitor {
         _currentClass = ClassType.CLASS;
         Declare(stmt._name);
         Define(stmt._name);
+        if (stmt._superclass?._name._lexeme == stmt._name._lexeme)
+            Machine.Error(stmt._superclass._name, "A class can't inherit from itself.");
+        if (stmt._superclass != null) {
+            _currentClass = ClassType.SUBCLASS;
+            Resolve(stmt._superclass);
+            BeginScope();
+            _scopes.Peek()["super"] = true;
+        }
         BeginScope();
         _scopes.Peek()["this"] = true;
         foreach (var method in stmt._methods) {
@@ -30,7 +38,16 @@ public class Resolver : Expr.IVisitor<object?>, Stmt.IVisitor {
             ResolveFunction(method, declaration);
         }
         EndScope();
+        if (stmt._superclass != null)
+            EndScope();
         _currentClass = enclosingClass;
+    }
+
+    public object? VisitSuperExpr(Expr.Super expr) {
+        if (_currentClass != ClassType.SUBCLASS)
+            Machine.Error(expr._keyword, "Cant use 'super' outside a subclass'");
+        ResolveLocal(expr, expr._keyword);
+        return null;
     }
 
     public void VisitVarStmt(Stmt.Var stmt) {
@@ -214,4 +231,5 @@ enum FunctionType {
 enum ClassType {
     NONE,
     CLASS,
+    SUBCLASS,
 }

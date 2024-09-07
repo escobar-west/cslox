@@ -1,7 +1,7 @@
 namespace Lib;
 
 public class Env {
-    readonly Env? _enclosing;
+    public readonly Env? _enclosing;
     readonly Dictionary<string, object?> _values = [];
 
     public Env() {

@@ -34,13 +34,25 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor {
     }
 
     public void VisitClassStmt(Stmt.Class stmt) {
+        LoxClass? superclass = null;
+        if (stmt._superclass != null) {
+            superclass = stmt._superclass.Accept(this) as LoxClass ??
+                throw new InvalidOperationException("Superclass must be a class.");
+        }
         _environment.Define(stmt._name._lexeme, null);
+        if (stmt._superclass != null) {
+            _environment = new Env(_environment);
+            _environment.Define("super", superclass);
+        }
         Dictionary<string, LoxFunc> methods = [];
         foreach (var method in stmt._methods) {
             LoxFunc func = new(method, _environment, method._name._lexeme == "init");
             methods[method._name._lexeme] = func;
         }
-        LoxClass klass = new(stmt._name._lexeme, methods);
+        LoxClass klass = new(stmt._name._lexeme, superclass, methods);
+        if (superclass != null) {
+            _environment = _environment._enclosing!;
+        }
         _environment.Assign(stmt._name._lexeme, klass);
     }
 
@@ -56,6 +68,18 @@ public class Interpreter : Expr.IVisitor<object?>, Stmt.IVisitor {
         object? value = expr._value.Accept(this);
         instance.Set(expr._name._lexeme, value);
         return value;
+    }
+
+    public object? VisitSuperExpr(Expr.Super expr) {
+        if (_locals.TryGetValue(expr, out int distance)) {
+            LoxClass? superclass = _environment.GetAt("super", distance) as LoxClass;
+            LoxFunc method = superclass?.FindMethod(expr._method._lexeme)
+                ?? throw new InvalidOperationException($"Undefined property '{expr._method._lexeme}'.");
+            LoxInstance instance = _environment.GetAt("this", distance - 1) as LoxInstance
+                ?? throw new InvalidOperationException($"Unbounded super expression'.");
+            return method.Bind(instance);
+        }
+        throw new InvalidOperationException($"Unresolved super expression'.");
     }
 
     public object? VisitThisExpr(Expr.This expr) {
