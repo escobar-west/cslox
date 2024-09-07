@@ -20,6 +20,7 @@ public class Parser {
         }
         return statements;
     }
+    
     Stmt Declaration() {
         if (Match(TokenType.CLASS))
             return ClassDeclaration();
