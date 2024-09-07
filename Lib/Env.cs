@@ -43,9 +43,9 @@ public class Env {
     }
 
     public object? GetAt(string name, int distance) {
-        if (Ancestor(distance)?._values.TryGetValue(name, out object? value) ?? false)
-            return value;
-        return null;
+        object? value = null;
+        Ancestor(distance)?._values.TryGetValue(name, out value);
+        return value;
     }
 
     Env? Ancestor(int distance) {
